@@ -50,7 +50,7 @@ To rules είναι ένα  array και κάθε στοιχείο του έχε
 
 #### 2.Inline
 Οι loaders μπορούν να οριστούν, βάζοντάς τους πριν το string της διαδρομής (μέσα σε αυτό) σε ένα importa statement, διαχωρίζοντάς τους με !
-π.χ. ```javascript *import Styles from 'style-loader!css-loader?modules!./styles.css';*```
+π.χ. ```*import Styles from 'style-loader!css-loader?modules!./styles.css';*```
 
 * Βάζοντας στην αρχή !, απενεργοποιούμε όλους τους normal loaders που έχουν οριστεί στο configuration.
 
@@ -70,4 +70,7 @@ To rules είναι ένα  array και κάθε στοιχείο του έχε
 5. Τα κανονικά modules, μπορούν να κάνουν export έναν loader μέσω το package.json και του πεδίου loader.
 6. Τα plugins μπορούν να επεκτείνουν την λειτουργικότητά τους.
 7. Μπορούν να αποθέσουν επιπρόσθετα, δευτερεύοντα αρχεία.
+
+### Plugins 
+Χρησιμοποιούνται για τ
 
