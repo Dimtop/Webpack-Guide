@@ -10,24 +10,82 @@
 ### Entry point
 Είναι το αρχείο από το οποίο θα ξεκινήσει η δημιουργία του depedency graph. Το default είναι το './src/index.js' αλλά μπορεί να αλλάξει εύκολα στο configuration, μέσω του πεδίου *entry*.
 
+Υπάρχουν πολλοί τρόποι να οριστούν τα entry points. Η γενική σύνταξη είναι *entry: {<entryChunckName> string/[string]}
+
 ```
 module.exports = {
   entry: './path/to/my/entry/file.js'
 };
 ```
 
-Υπάρχουν πολλοί τρόποι να οριστούν τα entry points. Η γενική σύνταξη είναι *entry: {<entryChunckName> string/[string]}
+```
+module.exports = {
+  entry: {
+    main: './path/to/my/entry/file.js'
+  }
+};
+```
+
+```
+module.exports = {
+  entry: {
+    app: './src/app.js',
+    adminApp: './src/adminApp.js'
+  }
+};
+```
+
+```
+module.exports = {
+  entry: {
+    filename: '[name].bundle.js'
+  }
+};
+```
 
 Το να δοθεί πίνακας από αρχεία είναι χρήσιμο, όταν θέλουμε να χρησιμοποιήσουμε πολλά εξαρτώμενα αρχεία και να καταγράψουμε τις εξαρτήσεις του σε ένα chunk.
 
 Σε εφαρμογές με πολλές σελίδες, είναι καλή πρακτική να ορίζουμε ένα entry point για κάθε μια σελίδα.
+
+```
+module.exports = {
+  entry: {
+    pageOne: './src/pageOne/index.js',
+    pageTwo: './src/pageTwo/index.js',
+    pageThree: './src/pageThree/index.js'
+  }
+};
+```
 
 ### Output
 Δείχνει στο webpack που να αποθηκεύει τα bundles που δημιουργεί. Η default τοποθεσία είναι ο './dist' φάκελος και μπορεί να αλλάξει μέσω του πεδίου *output* στο configuration.
 
 Παρ' όλο που μπορεί να υπάρχουν πολλά entry points, μόνο ένα output ορίζεται και χρειάζεται τουλάχιστον να έχει δηλωμένο το filename.
 
+```
+module.exports = {
+  output: {
+    filename: 'bundle.js',
+  }
+};
+```
+
 Όταν έχουμε πολλαπλά entry points, μπορούμε να χρησιμοποιήσουμε *substitutions* για να σιγουρευτούμε πως κάθε αρχείο θα έχει ξεχωριστό όνομα, π.χ έστω ότι έχομυε δύο entry points, το *app* και το *search*, ορίζοντας *output.filename: [name].js* θα δημιουργηθούν δύο output αρχεία, το './dist/app.js' και το './dist/search.js'.
+
+```
+module.exports = {
+  entry: {
+    app: './src/app.js',
+    search: './src/search.js'
+  },
+  output: {
+    filename: '[name].js',
+    path: __dirname + '/dist'
+  }
+};
+
+// writes to disk: ./dist/app.js, ./dist/search.js
+```
 
 Τα substitutions είναι τα εξής: 
 
@@ -42,7 +100,9 @@ module.exports = {
 ### Loaders
 Το webpack υποστηρίζει κατ' εξχοήν μόνο js και json αρχεία.
 
-Για να χρησιμοποιηθούν και άλλου είδους αρχεία (π.χ. css), υπάρχουν οι loaders, που τα μετατρέπους σε έγκυρα modules ώστε να χρησιμοποιηθούν στο depedency graph.
+Για να χρησιμοποιηθούν και άλλου είδους αρχεία (π.χ. css), υπάρχουν οι loaders, που τα μετατρέπους σε έγκυρα modules ώστε να χρησιμοποιηθούν στο depedency graph. 
+
+Θα πρέπει πρώτα να εγκατασταθούν μέσω το npm π.χ. ```npm install --save-dev css-loader ts-loader```
 
 Οι loaders μπορούν να οριστούν με τρείς τρόπους:
 
@@ -54,18 +114,50 @@ To rules είναι ένα  array και κάθε στοιχείο του έχε
 2. **use**, που καθορίζει ποιός loader θα χρησιμοποιηθεί
 Ο πίνακας αυτός διαβάζεται παό πάνω προς τα κάτω.
 
+```
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          // style-loader
+          { loader: 'style-loader' },
+          // css-loader
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true
+            }
+          },
+          // sass-loader
+          { loader: 'sass-loader' }
+        ]
+      }
+    ]
+  }
+};
+```
+
 #### 2.Inline
 Οι loaders μπορούν να οριστούν, βάζοντάς τους πριν το string της διαδρομής (μέσα σε αυτό) σε ένα importa statement, διαχωρίζοντάς τους με !
 π.χ. ```import Styles from 'style-loader!css-loader?modules!./styles.css';```
 
 * Βάζοντας στην αρχή !, απενεργοποιούμε όλους τους normal loaders που έχουν οριστεί στο configuration.
+π.χ. ```import Styles from '!style-loader!css-loader?modules!./styles.css';```
 
 * Βάζοντας στην αρχή !!, απενεργοποιούμε όλους τους loaders, preLoaders, postLoaders που έχουν οριστεί στο configuration.
+π.χ. ```import Styles from '!!style-loader!css-loader?modules!./styles.css';```
 
 * Βάζοντας στην αρχή -!, απενεργοποιούμε όλους τους loaders και τους preLoaders, αλλά όχι τους postLoaders που έχουν οριστεί στο configuration.
+π.χ. ```import Styles from '-!style-loader!css-loader?modules!./styles.css';```
 
 #### 3. CLI
 Οι loaders μπορούν να οριστούν μέσω του CLI, με το option --module -bind <loaders>, χρησιμοποιώντας με το ίδιο τρόπο όπως πριν το ! για τον διαχωρισμό τους, αν χρειαστεί.
+
+```
+webpack --module-bind pug-loader --module-bind 'css=style-loader!css-loader'
+```
 
 Ιδιότητες των loaders:
 
@@ -91,8 +183,47 @@ To rules είναι ένα  array και κάθε στοιχείο του έχε
 #### 1.Configuration
 Δημιουργώντα instances μέσα στον πίνακα plugins του configuration.
 
+```
+const HtmlWebpackPlugin = require('html-webpack-plugin'); //installed via npm
+const webpack = require('webpack'); //to access built-in plugins
+const path = require('path');
+
+module.exports = {
+  entry: './path/to/my/entry/file.js',
+  output: {
+    filename: 'my-first-webpack.bundle.js',
+    path: path.resolve(__dirname, 'dist')
+  },
+  module: {
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        use: 'babel-loader'
+      }
+    ]
+  },
+  plugins: [
+    new webpack.ProgressPlugin(),
+    new HtmlWebpackPlugin({template: './src/index.html'})
+  ]
+};
+```
+
 #### 2.Node API
 Μέσω του API του Node js.
+
+```
+const webpack = require('webpack'); //to access webpack runtime
+const configuration = require('./webpack.config.js');
+
+let compiler = webpack(configuration);
+
+new webpack.ProgressPlugin().apply(compiler);
+
+compiler.run(function(err, stats) {
+  // ...
+});
+```
 
 
 ### Configuration
@@ -103,6 +234,19 @@ To rules είναι ένα  array και κάθε στοιχείο του έχε
 1. Χρήση παραμέτρων του CLI, όταν χρησιμοποιούμε το webpack CLI (προτείνεται η δημιουργία δικού μας CLI ή η χρήση του *--env*).
 2. Export μη απόλυτων, περιγραφικών τιμών.
 3. Μεγάλα configuration αρχεία (συνίσταται το σπάσιμο σε μικρότερα αρχέια).
+
+```
+var path = require('path');
+
+module.exports = {
+  mode: 'development',
+  entry: './foo.js',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'foo.bundle.js'
+  }
+};
+```
 
 
 ### Modules
@@ -160,9 +304,39 @@ To webpack χρησιμοποιεί τα modules με τον ίδιο τρόπο
 ### Targets
 Ορίζουν το περιβάλλον αναφοράς της εφαρμογής, καθώς η js μπορεί να έχει γραφεί είτε για server, είτε για browser.
 
+```
+module.exports = {
+  target: 'node'
+};
+```
+
 Δεν υπάρχει η δυνατότητα για πολλαπλές τιμές στο πεδίο *target*.
 
-Αν αυτό χρειαστεί θα πρέπει να δημιουργηθούν πολλαπλά παρόμοι bundles και configurations.
+Αν αυτό χρειαστεί θα πρέπει να δημιουργηθούν πολλαπλά παρόμοια bundles και configurations.
+
+```
+const path = require('path');
+const serverConfig = {
+  target: 'node',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'lib.node.js'
+  }
+  //…
+};
+
+const clientConfig = {
+  target: 'web', // <=== can be omitted as default is 'web'
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'lib.js'
+  }
+  //…
+};
+
+module.exports = [ serverConfig, clientConfig ];
+```
+
 
 ### The manifest
 Είναι η συλλογή δεδομένων σχετικά με τα modules, που βοηθούν στην ανάκτηση, την φόρτωση, το caching και το bundling των modules.
